@@ -1,0 +1,14 @@
+{
+  "name": "you-are-under-attack",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Live security decision drill: a leader screen and phone pages for players.",
+  "scripts": {
+    "dev": "node dev-server.mjs",
+    "test": "node test.mjs"
+  },
+  "dependencies": {
+    "@netlify/blobs": "latest"
+  }
+}

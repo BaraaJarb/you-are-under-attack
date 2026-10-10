@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#04060b">
+<title>You Are Under Attack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<style>
+/* Player phone page: one column, big tap targets, one thing per screen. */
+.app{max-width:520px;width:100%;gap:14px;padding-bottom:28px}
+h1,h2{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin:0;line-height:1.02;text-wrap:balance}
+h1{font-size:clamp(2.4rem,13vw,3.6rem)}
+h2{font-size:1.9rem}
+.p{margin:0;color:var(--dim)}
+.brief{margin:0;font-size:1.15rem;line-height:1.5}
+.q{margin:0;font-family:var(--display);font-weight:500;font-size:1.25rem;color:var(--ice);letter-spacing:.03em}
+.box{padding:18px 18px 18px 22px}
+.box::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--alarm)}
+.clock{display:flex;align-items:center;gap:14px}
+.clock .num{font-family:var(--display);font-weight:700;font-size:2.6rem;min-width:2.1ch;font-variant-numeric:tabular-nums;text-shadow:0 0 18px rgba(143,208,255,.5)}
+.clock .track{flex:1;height:10px;background:rgba(120,160,230,.16)}
+.clock .track b{display:block;height:100%;width:100%;background:var(--ice);box-shadow:0 0 12px rgba(143,208,255,.6)}
+.clock.low .num{color:var(--alarm);text-shadow:0 0 18px rgba(255,59,48,.7)}
+.clock.low .track b{background:var(--alarm);box-shadow:0 0 12px rgba(255,59,48,.7)}
+.clock.done .num{color:var(--alarm)}
+.opt{display:flex;align-items:center;gap:14px;width:100%;min-height:72px;text-align:left;background:var(--panel);border:1px solid var(--line);padding:12px;transition:border-color .15s,background .15s,transform .1s}
+.opt:active:not(:disabled){transform:scale(.985)}
+.opt .l{flex:none;width:46px;height:46px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:1.6rem;background:rgba(4,6,11,.6);border:1px solid var(--line);color:var(--ice)}
+.opt .t{flex:1;min-width:0;font-size:1.05rem;line-height:1.35;overflow-wrap:anywhere}
+.opt.sel{border-color:var(--ice);background:rgba(16,38,66,.9);box-shadow:0 0 22px rgba(143,208,255,.25)}
+.opt.sel .l{background:var(--ice);border-color:var(--ice);color:#04141f}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--good);background:rgba(8,36,30,.9);box-shadow:0 0 26px rgba(47,230,161,.25)}
+.opt.right .l{background:var(--good);border-color:var(--good);color:#04150e}
+.opt.wrong{opacity:.65}
+.opt.wrong.sel{opacity:1;border-color:var(--alarm);background:rgba(40,12,16,.9)}
+.opt.wrong.sel .l{background:var(--alarm);border-color:var(--alarm);color:#16070a}
+.verdict{font-family:var(--display);font-weight:700;font-size:2rem;text-transform:uppercase;letter-spacing:.06em;animation:pop .5s cubic-bezier(.2,1.6,.4,1) both}
+.verdict.ok{color:var(--good);text-shadow:0 0 24px rgba(47,230,161,.6)}.verdict.no{color:var(--alarm)}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+.why{background:rgba(8,36,30,.9);border:1px solid var(--good);padding:16px 18px;display:grid;gap:6px}
+.why .k{font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;color:var(--good);text-transform:uppercase}
+.why p{margin:0;font-size:1.05rem;line-height:1.6}
+.risk{border:1px dashed rgba(255,59,48,.5);padding:12px 14px;font-size:.98rem;color:#d7aab0}
+.risk b{display:block;font-family:var(--mono);font-weight:500;font-size:.66rem;letter-spacing:.16em;color:var(--alarm);margin-bottom:2px}
+.score{display:flex;gap:10px}
+.score>div{flex:1;padding:12px;text-align:center}
+.score .n{font-family:var(--display);font-weight:700;font-size:2rem;line-height:1}
+.big{font-family:var(--display);font-weight:700;font-size:5rem;line-height:1;color:var(--ice)}
+.big.gold{color:var(--amber);text-shadow:0 0 30px rgba(255,178,36,.5)}
+.row{display:flex;align-items:center;gap:12px;padding:10px 14px}
+.row .pos{font-family:var(--display);font-weight:700;width:1.8ch;color:var(--dim)}
+.row .nm{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:600}
+.row .sc{font-family:var(--display);font-weight:700;font-size:1.2rem}
+.row.me{border-color:var(--ice);background:rgba(16,38,66,.7)}
+.wait{display:flex;gap:8px;align-items:center}
+.wait i{width:9px;height:9px;border-radius:50%;background:var(--ice);animation:pulse 1.2s ease-in-out infinite}
+.wait i:nth-child(2){animation-delay:.2s}.wait i:nth-child(3){animation-delay:.4s}
+</style>
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<div class="vig"></div>
+<div class="sirens" id="sirens" aria-hidden="true"><i></i><i></i></div>
+<div class="flash" id="flash"></div>
+<div class="scan"></div>
+
+<main class="app" id="app" aria-live="polite"></main>
+
+<script src="/art.js"></script>
+<script src="/bg.js"></script>
+<script>
+(function(){
+'use strict';
+var LET=['A','B','C','D'];
+var $app=document.getElementById('app');
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;}
+function pad(n){return (n<10?'0':'')+n;}
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+
+/* identity */
+var pid=lsGet('ua_pid');
+if(!pid||!/^[a-z0-9]{8,40}$/.test(pid)){pid=(Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)+Date.now().toString(36)).replace(/[^a-z0-9]/g,'').slice(0,24);lsSet('ua_pid',pid);}
+var name=lsGet('ua_name')||'', joined=false, gid=lsGet('ua_gid')||'', mine={};
+var st=null, off=0, view='', busy=false, joinErr='', voteErr='', queue=Promise.resolve();
+
+function api(path,body){
+  var o=body?{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}:{};
+  return fetch(path,o).then(function(r){return r.json().then(function(j){return {status:r.status,body:j};});});
+}
+function srvNow(){return Date.now()+off;}
+function remaining(){
+  if(!st||st.status!=='live')return 0;
+  if(st.phase==='running')return Math.max(0,(st.endsAt-srvNow())/1000);
+  if(st.phase==='paused')return st.remMs/1000;
+  return 0;
+}
+function myScore(){return st&&st.scores&&st.scores[pid]!=null?st.scores[pid]:0;}
+function myRank(){
+  if(!st||!st.scores||st.scores[pid]==null)return null;
+  var me=st.scores[pid],better=0,tot=0;
+  Object.keys(st.scores).forEach(function(k){tot++;if(st.scores[k]>me)better++;});
+  return {rank:better+1,of:tot};
+}
+
+/* join */
+function doJoin(n){
+  n=(n||'').replace(/\s+/g,' ').trim();
+  if(!n){joinErr='Enter a name first.';render(true);return Promise.resolve();}
+  busy=true;joinErr='';render(true);
+  return api('/api/join',{pid:pid,name:n}).then(function(r){
+    busy=false;
+    if(r.status===200){name=r.body.name;lsSet('ua_name',name);joined=true;mine=r.body.answers||{};}
+    else joinErr='Could not join. Check your connection and try again.';
+    render(true);
+  }).catch(function(){busy=false;joinErr='No connection. Try again.';render(true);});
+}
+
+/* voting */
+function pick(letter){
+  if(!st||st.status!=='live'||st.phase!=='running'||remaining()<=0)return;
+  var i=st.idx,prev=mine[i];
+  mine[i]=letter;voteErr='';render(true);
+  if(navigator.vibrate){try{navigator.vibrate(25);}catch(e){}}
+  queue=queue.then(function(){return api('/api/vote',{pid:pid,idx:i,letter:letter});}).then(function(r){
+    if(r.status!==200){
+      if(prev)mine[i]=prev;else delete mine[i];
+      voteErr=r.body&&r.body.error==='join_first'?'Rejoin the drill to answer.':'Too late, the window is closed.';
+      if(r.body&&r.body.error==='join_first'){joined=false;}
+      render(true);
+    }
+  }).catch(function(){voteErr='No connection. Tap your answer again.';render(true);});
+}
+
+/* rendering: rebuilt on state change, the clock is updated in place every 200 ms */
+var lastKey='';
+function keyOf(){return [joined,busy,joinErr,voteErr,st&&st.ver,mine[st&&st.idx],st&&st.status,st&&st.phase].join('|');}
+function render(force){
+  var k=keyOf();if(!force&&k===lastKey)return;lastKey=k;
+  $app.textContent='';
+  var head=el('div','brand');head.appendChild(el('span','dot'));head.appendChild(document.createTextNode('Security Response Drill'));
+  $app.appendChild(head);
+
+  if(!joined){
+    $app.appendChild(el('div','kick','Live decision drill'));
+    var h=el('h1','glitch','You are under attack');h.dataset.t='You are under attack';$app.appendChild(h);
+    $app.appendChild(el('p','p','Make the right call under pressure. Enter your name to join.'));
+    var inp=el('input','input');inp.type='text';inp.maxLength=24;inp.placeholder='Your name';inp.autocomplete='nickname';inp.value=name;inp.setAttribute('aria-label','Your name');
+    inp.addEventListener('keydown',function(e){if(e.key==='Enter')doJoin(inp.value);});
+    $app.appendChild(inp);
+    var b=el('button','btn red',busy?'Joining…':'Join drill');b.type='button';b.disabled=busy;b.addEventListener('click',function(){doJoin(inp.value);});
+    $app.appendChild(b);
+    if(joinErr)$app.appendChild(el('div','err',joinErr));
+    return;
+  }
+
+  if(!st){$app.appendChild(el('p','p','Connecting…'));return;}
+
+  if(st.status==='setup'||st.status==='lobby'){
+    $app.appendChild(el('div','status','You are in, '+name));
+    $app.appendChild(el('h2',null,st.status==='setup'?'Waiting for the leader':'Waiting for the drill to start'));
+    $app.appendChild(el('p','p','Keep this page open. The first incident appears here by itself.'));
+    var w=el('div','wait');w.appendChild(el('i'));w.appendChild(el('i'));w.appendChild(el('i'));$app.appendChild(w);
+    return;
+  }
+
+  if(st.status==='done'){
+    var mr=myRank();
+    $app.appendChild(el('div','kick','Drill complete'));
+    $app.appendChild(el('h2',null,'Final result'));
+    if(mr){
+      $app.appendChild(el('div','big'+(mr.rank===1?' gold':''),'#'+mr.rank));
+      $app.appendChild(el('p','p',myScore()+' correct out of '+st.n+' incidents · '+mr.of+' players'));
+    }else $app.appendChild(el('p','p','You scored '+myScore()+' out of '+st.n+'.'));
+    $app.appendChild(el('div','lbl','Top players'));
+    (st.board||[]).slice(0,5).forEach(function(r,i){
+      var row=el('div','card row');row.appendChild(el('span','pos',String(i+1)));row.appendChild(el('span','nm',r.n));row.appendChild(el('span','sc',String(r.s)));
+      if(r.n===name)row.classList.add('me');
+      $app.appendChild(row);
+    });
+    return;
+  }
+
+  /* live */
+  var inc=st.incident||{t:'',cat:'',sev:'high',b:'',q:'',o:[]};
+  var tags=el('div','tags');
+  tags.appendChild(el('span','tag','Incident '+pad(st.idx+1)+' / '+pad(st.n)));
+  if(inc.sev)tags.appendChild(el('span','tag '+inc.sev,inc.sev));
+  $app.appendChild(tags);
+
+  if(st.phase==='ready'){
+    $app.appendChild(el('h2',null,'Incident incoming'));
+    $app.appendChild(el('p','p','Get ready. The scenario appears when the leader starts the clock.'));
+    var ag=el('div','art');ag.innerHTML=window.ART[st.idx]||'';$app.appendChild(ag);
+    $app.appendChild(el('div','status','Your score: '+myScore()));
+    return;
+  }
+
+  var ar=el('div','card art');ar.style.padding='8px';ar.innerHTML=window.ART[st.idx]||'';$app.appendChild(ar);
+  var bx=el('div','card box');bx.appendChild(el('h2',null,inc.t));bx.appendChild(el('p','brief',inc.b));bx.firstChild.style.marginBottom='8px';$app.appendChild(bx);
+
+  var rev=(st.phase==='revealed'&&st.reveal);
+  if(!rev){
+    var cl=el('div','clock');cl.id='clock';
+    var num=el('div','num','60');num.id='cnum';
+    var tr=el('div','track'),bb=document.createElement('b');bb.id='cbar';tr.appendChild(bb);
+    cl.appendChild(num);cl.appendChild(tr);$app.appendChild(cl);
+  }
+  $app.appendChild(el('p','q',inc.q));
+  var open=(st.phase==='running'&&remaining()>0);
+  (inc.o||[]).forEach(function(txt,i){
+    var c='opt';
+    if(mine[st.idx]===LET[i])c+=' sel';
+    if(rev)c+=(i===st.reveal.a?' right':' wrong');
+    var b=el('button',c);b.type='button';b.disabled=!open;
+    b.appendChild(el('span','l',LET[i]));b.appendChild(el('span','t',txt));
+    b.addEventListener('click',function(){pick(LET[i]);});
+    b.setAttribute('aria-pressed',mine[st.idx]===LET[i]?'true':'false');
+    $app.appendChild(b);
+  });
+  var msg=el('div','status');msg.id='msg';$app.appendChild(msg);
+  if(voteErr)$app.appendChild(el('div','err',voteErr));
+
+  if(rev){
+    var ok=(mine[st.idx]===LET[st.reveal.a]);
+    $app.appendChild(el('div','verdict '+(ok?'ok':'no'),ok?'Correct':(mine[st.idx]?'Not quite':'No answer')));
+    if(!ok&&mine[st.idx]){
+      var ri=LET.indexOf(mine[st.idx]);
+      if(st.reveal.r&&st.reveal.r[ri]){var rk=el('div','risk');rk.appendChild(el('b',null,'WHY YOUR PICK FAILS'));rk.appendChild(document.createTextNode(st.reveal.r[ri]));$app.appendChild(rk);}
+    }
+    var wy=el('div','why');wy.appendChild(el('div','k','Correct answer: '+LET[st.reveal.a]));wy.appendChild(el('p',null,inc.why||st.reveal.why));$app.appendChild(wy);
+    var sc=el('div','score'),mr2=myRank();
+    var s1=el('div','card');s1.appendChild(el('div','n',myScore()+' / '+st.revealedCount));s1.appendChild(el('div','lbl','Your score'));
+    var s2=el('div','card');s2.appendChild(el('div','n',mr2?'#'+mr2.rank:'-'));s2.appendChild(el('div','lbl','Your rank'));
+    sc.appendChild(s1);sc.appendChild(s2);$app.appendChild(sc);
+    var fl=document.getElementById('sirens');if(fl)fl.classList.add('calm');
+    if(ok&&window.UA_BG)window.UA_BG.cheer();
+  }else{var s0=document.getElementById('sirens');if(s0)s0.classList.remove('calm');}
+  tickClock();
+}
+function tickClock(){
+  var n=document.getElementById('cnum'),m=document.getElementById('msg');
+  if(!st||st.status!=='live')return;
+  var r=remaining();
+  if(n){
+    n.textContent=Math.ceil(r);
+    var bar=document.getElementById('cbar');if(bar)bar.style.width=(r/(st.dur/1000)*100)+'%';
+    var c=document.getElementById('clock');if(c){c.classList.toggle('low',st.phase==='running'&&r<=10&&r>0);c.classList.toggle('done',st.phase==='running'&&r<=0);}
+  }
+  if(m&&st.phase!=='revealed'){
+    if(st.phase==='paused')m.textContent='Timer paused by the leader';
+    else if(st.phase==='running'&&r<=0)m.textContent=mine[st.idx]?'Time is up. Your answer: '+mine[st.idx]+'. Watch the main screen.':'Time is up. You did not answer.';
+    else if(st.phase==='running')m.textContent=mine[st.idx]?'Locked in: '+mine[st.idx]+'. You can change it until time runs out.':'Tap your answer';
+  }
+  /* options freeze the moment the clock hits zero */
+  if(st.phase==='running'&&r<=0){document.querySelectorAll('.opt').forEach(function(b){b.disabled=true;});}
+}
+setInterval(tickClock,200);
+
+/* polling */
+var lastVer=null,failures=0;
+function poll(){
+  var t0=Date.now();
+  fetch('/api/state',{cache:'no-store'}).then(function(r){return r.json();}).then(function(s){
+    failures=0;
+    var t1=Date.now();off=s.now-(t0+t1)/2;
+    if(s.gid&&gid&&s.gid!==gid){mine={};joined=false;}   /* a new drill started: join again */
+    if(s.gid)gid=s.gid;lsSet('ua_gid',gid);
+    var changed=(!st||s.ver!==st.ver);st=s;
+    if(!joined&&name&&!busy&&lsGet('ua_name')&&!joinErr&&s.status!=='setup'){doJoin(name);return;}
+    if(changed)render(true);else render(false);
+  }).catch(function(){failures++;if(failures===3){voteErr='Connection lost. Trying to reconnect…';render(true);}});
+}
+/* silent re-join for returning players */
+if(name){api('/api/join',{pid:pid,name:name}).then(function(r){if(r.status===200){joined=true;mine=r.body.answers||{};name=r.body.name;}render(true);}).catch(function(){render(true);});}
+render(true);
+poll();setInterval(poll,2000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)poll();});
+})();
+</script>
+</body>
+</html>
